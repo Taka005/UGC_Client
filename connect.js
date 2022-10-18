@@ -41,24 +41,29 @@ async function websocket(){
     });
 
     ws.addEventListener("message", (rawData)=>{
-      const _data = new Zlib.Inflate(rawData);
-      const data = JSON.parse(_data.decompress());
+      new Zlib.inflate(rawData, (err,_data) =>{
+        if(err){
+          const li = document.createElement("li");
+          li.innerText = `LOG:${err}`;
+          li.classList.add("list-group-item")  
+          ul.appendChild(li);
+          return;
+        }
+        const data = JSON.parse(_data);
       console.log(data)
-      if(data.type === "hello"){
-        const send = (new Zlib.Deflate(JSON.stringify({
+      if(data.type === "hello"){          
+        ws.send(new Zlib.deflateSync(JSON.stringify({
           "type": "identify",
           "data": {
-            "token": token
+            "token": process.env.UGC_KEY
           }
-        }))).compress();
-          
-        ws.send(send,(err)=>{
+          }),(err)=>{
           if(!err) return; 
             const li = document.createElement("li");
             li.innerText = `LOG:${err}`;
             li.classList.add("list-group-item")  
             ul.appendChild(li);
-        });
+        }));
       }else if(data.type === "message"){
         const msg = data.data.data
 
@@ -85,4 +90,5 @@ async function websocket(){
         return
       }
     });
+  });
 }
