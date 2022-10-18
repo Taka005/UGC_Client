@@ -15,7 +15,7 @@ form.addEventListener("submit", (event)=>{
 function websocket(){
     const token = input.value;
 
-    const ws = new websocket("wss://ugc.renorari.net/api/v1/gateway");
+    const ws = new Websocket("wss://ugc.renorari.net/api/v1/gateway");
 
     ws.addEventListener("close", (code, reason)=>{
       setTimeout(() =>{
