@@ -41,48 +41,48 @@ async function websocket(){
     });
 
     ws.addEventListener("message", (rawData)=>{
-      const _data = (new Zlib.Inflate(rawData)).decompress();
-      console.log(_data)
-        let data = JSON.parse(_data);
-        if(data.type === "hello"){
-          const send = (new Zlib.RawDeflate(JSON.stringify({
-            "type": "identify",
-            "data": {
-              "token": token
-            }
-          }))).compress();
+      const _data = new Zlib.Inflate(rawData);
+      const data = JSON.parse(_data.decompress());
+      console.log(data)
+      if(data.type === "hello"){
+        const send = (new Zlib.Deflate(JSON.stringify({
+          "type": "identify",
+          "data": {
+            "token": token
+          }
+        }))).compress();
           
-          ws.send(send,(err)=>{
-              if(!err) return; 
-              const li = document.createElement("li");
-              li.innerText = `LOG:${err}`;
-              li.classList.add("list-group-item")  
-              ul.appendChild(li);
-          });
-        }else if(data.type === "message"){
-          const msg = data.data.data
-
-          const li = document.createElement("li");
-          li.innerText =`${msg.author.username}#${msg.author.discriminator}:${msg.message.content}`;
-          li.classList.add("list-group-item")  
-          ul.appendChild(li);
-
-        }else if(data.type === "identify"){
-          if(!data.success){
+        ws.send(send,(err)=>{
+          if(!err) return; 
             const li = document.createElement("li");
-            li.innerText = "LOG:No Ready";
+            li.innerText = `LOG:${err}`;
             li.classList.add("list-group-item")  
             ul.appendChild(li);
-            return;
-          }
+        });
+      }else if(data.type === "message"){
+        const msg = data.data.data
+
+        const li = document.createElement("li");
+        li.innerText =`${msg.author.username}#${msg.author.discriminator}:${msg.message.content}`;
+        li.classList.add("list-group-item")  
+        ul.appendChild(li);
+
+      }else if(data.type === "identify"){
+        if(!data.success){
           const li = document.createElement("li");
-          li.innerText = "LOG:Ready";
+          li.innerText = "LOG:No Ready";
           li.classList.add("list-group-item")  
           ul.appendChild(li);
           return;
-
-        }else if(data.type === "heartbeat"){
-          return
         }
-      });
-  }
+        const li = document.createElement("li");
+        li.innerText = "LOG:Ready";
+        li.classList.add("list-group-item")  
+        ul.appendChild(li);
+        return;
+
+      }else if(data.type === "heartbeat"){
+        return
+      }
+    });
+}
