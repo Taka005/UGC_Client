@@ -41,10 +41,10 @@ async function websocket(){
     });
 
     ws.addEventListener("message", (rawData)=>{
-      const _data = (new Zlib.RawDeflate(rawData)).compress();
+      const _data = (new Zlib.Deflate(rawData)).compress();
         let data = JSON.parse(_data);
         if(data.type === "hello"){
-          const send = (new Zlib.RawInflate(JSON.stringify({
+          const send = (new Zlib.Inflate(JSON.stringify({
             "type": "identify",
             "data": {
               "token": token
