@@ -40,15 +40,18 @@ async function websocket(){
         return;
     });
 
-    ws.addEventListener("message", (_data)=>{
+    ws.addEventListener("message", (rawData)=>{
+      const _data = (new Zlib.RawDeflate(rawData)).compress();
         let data = JSON.parse(_data);
         if(data.type === "hello"){
-          ws.send(JSON.stringify({
+          const send = (new Zlib.RawInflate(JSON.stringify({
             "type": "identify",
             "data": {
               "token": token
             }
-          }),(err)=>{
+          }))).decompress();
+          
+          ws.send(send,(err)=>{
               if(!err) return; 
               const li = document.createElement("li");
               li.innerText = `LOG:${err}`;
