@@ -42,6 +42,7 @@ async function websocket(){
 
     ws.addEventListener("message", (rawData)=>{
       const _data = (new Zlib.Deflate(rawData)).compress();
+      console.log(_data)
         let data = JSON.parse(_data);
         if(data.type === "hello"){
           const send = (new Zlib.Inflate(JSON.stringify({
