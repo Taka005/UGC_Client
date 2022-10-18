@@ -18,77 +18,73 @@ form.addEventListener("submit",async (event)=>{
 });
 
 async function websocket(){
-    const token = input.value;
+  const token = input.value;
 
-    const ws = new WebSocket("wss://ugc.renorari.net/api/v1/gateway");
+  const ws = new WebSocket("wss://ugc.renorari.net/api/v1/gateway");
 
-    ws.addEventListener("close", (code, reason)=>{
-      setTimeout(() =>{
-        websocket();
-      }, 10000);
+  ws.addEventListener("close", (code, reason)=>{
+    const li = document.createElement("li");
+    li.innerText = `LOG:${code} ${reason}`;
+    li.classList.add("list-group-item")  
+    ul.appendChild(li);
+
+    setTimeout(() =>{
+      websocket();
+    }, 10000);
+    return;
+  });
+    
+  ws.addEventListener("error", (error)=>{
       const li = document.createElement("li");
-      li.innerText = `LOG:${code} ${reason}`;
+      li.innerText = `LOG:${error}`;
       li.classList.add("list-group-item")  
       ul.appendChild(li);
-    });
-    
-    ws.addEventListener("error", (error)=>{
-        const li = document.createElement("li");
-        li.innerText = `LOG:${error}`;
-        li.classList.add("list-group-item")  
-        ul.appendChild(li);
-        return;
-    });
+      return;
+  });
 
-    ws.addEventListener("message", (rawData)=>{
-      new Zlib.inflate(rawData, (err,_data) =>{
-        if(err){
+  ws.addEventListener("message", (rawData)=>{
+    const _data = new Zlib.RawInflate(rawData);
+    const data = JSON.parse(_data.decompress());
+    console.log(data)
+    if(data.type === "hello"){
+      const send = (new Zlib.RawDeflate(JSON.stringify({
+        "type": "identify",
+        "data": {
+          "token": token
+        }
+      }))).compress();
+          
+      ws.send(send,(err)=>{
+        if(!err) return; 
           const li = document.createElement("li");
           li.innerText = `LOG:${err}`;
           li.classList.add("list-group-item")  
           ul.appendChild(li);
-          return;
-        }
-        const data = JSON.parse(_data);
-      console.log(data)
-      if(data.type === "hello"){          
-        ws.send(new Zlib.deflateSync(JSON.stringify({
-          "type": "identify",
-          "data": {
-            "token": process.env.UGC_KEY
-          }
-          }),(err)=>{
-          if(!err) return; 
-            const li = document.createElement("li");
-            li.innerText = `LOG:${err}`;
-            li.classList.add("list-group-item")  
-            ul.appendChild(li);
-        }));
-      }else if(data.type === "message"){
-        const msg = data.data.data
+      });
+    }else if(data.type === "message"){
+      const msg = data.data.data
 
-        const li = document.createElement("li");
-        li.innerText =`${msg.author.username}#${msg.author.discriminator}:${msg.message.content}`;
-        li.classList.add("list-group-item")  
-        ul.appendChild(li);
+      const li = document.createElement("li");
+      li.innerText =`${msg.author.username}#${msg.author.discriminator}:${msg.message.content}`;
+      li.classList.add("list-group-item")  
+      ul.appendChild(li);
 
-      }else if(data.type === "identify"){
-        if(!data.success){
-          const li = document.createElement("li");
-          li.innerText = "LOG:No Ready";
-          li.classList.add("list-group-item")  
-          ul.appendChild(li);
-          return;
-        }
+    }else if(data.type === "identify"){
+      if(!data.success){
         const li = document.createElement("li");
-        li.innerText = "LOG:Ready";
+        li.innerText = "LOG:No Ready";
         li.classList.add("list-group-item")  
         ul.appendChild(li);
         return;
-
-      }else if(data.type === "heartbeat"){
-        return
       }
-    });
+      const li = document.createElement("li");
+      li.innerText = "LOG:Ready";
+      li.classList.add("list-group-item")  
+      ul.appendChild(li);
+      return;
+
+    }else if(data.type === "heartbeat"){
+      return
+    }
   });
 }
