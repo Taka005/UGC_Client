@@ -2,13 +2,20 @@ const form = document.getElementById("form");
 const input = document.getElementById("input");
 const ul = document.getElementById("ul");
 
+const zlib = new Zlib()
+
 form.addEventListener("submit", (event)=>{
     event.preventDefault();
     const lists = document.querySelectorAll("li");
     for(i=0;i<lists.length;i++){
        lists[i].remove()
     }
-    
+
+    const li = document.createElement("li");
+    li.innerText = "Connecting....";
+    li.classList.add("list-group-item")  
+    ul.appendChild(li);
+
     websocket()
 });
 
@@ -37,7 +44,7 @@ function websocket(){
 
     ws.addEventListener("message", (rawData)=>{
 
-      Zlib.inflate(rawData, (err,_data) =>{
+      zlib.inflate(rawData, (err,_data) =>{
         if(!err){
             const li = document.createElement("li");
             li.innerText = `LOG:${err}`;
@@ -47,7 +54,7 @@ function websocket(){
         }
         let data = JSON.parse(_data);
         if(data.type === "hello"){
-          ws.send(Zlib.deflateSync(JSON.stringify({
+          ws.send(zlib.deflateSync(JSON.stringify({
             "type": "identify",
             "data": {
               "token": token
