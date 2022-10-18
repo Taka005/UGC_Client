@@ -43,6 +43,7 @@ async function websocket(){
   });
 
   ws.addEventListener("message", (rawData)=>{
+    console.log(rawData)
     const _data = new Zlib.RawInflate(rawData);
     const data = JSON.parse(_data.decompress());
     console.log(data)
