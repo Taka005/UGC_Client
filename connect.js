@@ -43,7 +43,7 @@ async function websocket(){
   });
 
   ws.addEventListener("message", (rawData)=>{
-    const _data = new Zlib.Inflate(rawData);
+    const _data = new Zlib.Inflate(new Uint8Array(rawData));
     const data = JSON.parse(_data.decompress());
     console.log(data)
     if(data.type === "hello"){
