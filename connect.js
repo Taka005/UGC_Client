@@ -43,6 +43,7 @@ async function websocket(){
   });
 
   ws.addEventListener("message", (rawData)=>{
+    console.log(JSON.stringify(rawData))
     const _data = (new Zlib.Gunzip(rawData).decompress());
     console.log(_data)
     const data = JSON.parse(_data);
